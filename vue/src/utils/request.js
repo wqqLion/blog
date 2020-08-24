@@ -1,0 +1,53 @@
+/*
+ * @Descripttion: 
+ * @version: 
+ * @Author: wqq
+ * @Date: 2020-06-18 15:18:27
+ * @LastEditors: wqq
+ * @LastEditTime: 2020-08-24 14:55:37
+ */ 
+import axios from "axios";
+import qs from 'qs'
+import {Message} from 'element-ui';
+
+axios.defaults.withCredentials=false;//携带cookie,默认不携带
+// 创建新的axios实例
+const service = axios.create({
+  baseURL:'http://192.168.5.15:8081',
+  port:'8007',
+  timeout:5*1000
+})
+
+
+// 请求拦截器
+
+service.interceptors.request.use(config=>{
+  config.data = qs.stringify(config.data);
+  if(config.header){
+    config.headers = config.header;
+  }else{
+    config.headers = {
+      'Content-Type':'application/x-www-form-urlencoded'
+    }
+  }
+  return config
+},error=>{
+  Promise.reject(error);
+})
+
+// 响应拦截器
+service.interceptors.response.use(response=>{
+  if(response.data.errno === 0){
+    return response.data;
+  }else{
+    return Promise.reject(response.data);
+  }
+},error=>{
+  Message.error({
+    type:'error',
+    message:error.Message || '错误'
+  });
+  console.log(error)
+  return Promise.reject(error.response);
+})
+export default service
